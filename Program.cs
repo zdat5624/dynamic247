@@ -93,7 +93,10 @@ namespace NewsPage
             //Auth service
             builder.Services.AddScoped<IUserAccountRepository, UserAccountsRepository>();
             builder.Services.AddScoped<IUserDetailRepository, UserDetailRepository>();
+
+
             builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+            builder.Services.AddScoped<IFavoriteTopicRepository, FavoriteTopicRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();

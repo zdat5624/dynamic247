@@ -110,7 +110,17 @@ namespace NewsPage.data
             modelBuilder.Entity<Article>()
                 .Property(a => a.Content)
                 .HasColumnType("NVARCHAR(MAX)");
+            modelBuilder.Entity<FavoriteTopics>()
+                .HasOne<UserAccounts>()
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<FavoriteTopics>()
+                .HasOne<Topic>()
+                .WithMany()
+                .HasForeignKey(t => t.TopicId)
+                .OnDelete(DeleteBehavior.Cascade);
             base.OnModelCreating(modelBuilder);
         }
 
@@ -121,5 +131,7 @@ namespace NewsPage.data
         public DbSet<Article> Articles { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<ArticleVisit> ArticleVisits { get; set; }
+        public DbSet<FavoriteTopics> FavoriteTopics { get; set; }
+
     }
 }

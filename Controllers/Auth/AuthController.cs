@@ -1,9 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using NewsPage.helpers;
 using NewsPage.Models;
 using NewsPage.Models.entities;
+using NewsPage.Models.ResponseDTO;
 using NewsPage.repositories.interfaces;
 
 namespace NewsPage.Controllers.Auth
@@ -17,8 +19,9 @@ namespace NewsPage.Controllers.Auth
         private readonly PasswordHelper _passwordHelper;
         private readonly MailHelper _mailHelper;
         private readonly OtpHelper _otpHelper;
+        private readonly ILogger _logger;
         public AuthController(IUserAccountRepository userAccountsRepository, IUserDetailRepository userDetailRepository
-            , JwtHelper jwtHelper, PasswordHelper passwordHelper, MailHelper mailHelper, OtpHelper otpHelper)
+            , JwtHelper jwtHelper, PasswordHelper passwordHelper, MailHelper mailHelper, OtpHelper otpHelper, ILogger<Program> logger)
         {
             _userAccountRepository = userAccountsRepository;
             _jwtHelper = jwtHelper;
@@ -26,36 +29,43 @@ namespace NewsPage.Controllers.Auth
             _userDetailRepository = userDetailRepository;
             _mailHelper = mailHelper;
             _otpHelper = otpHelper;
+            _logger = logger;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AccountDTO accountDTO)
         {
-            var email = accountDTO.Email;
-            if (email == null)
-            {
-                return BadRequest();
-            }
-            var userAccount = await _userAccountRepository.GetByEmail(email);
+            try{
+                var email = accountDTO.Email;
+                if (email == null)
+                {
+                    return BadRequest();
+                }
+                var userAccount = await _userAccountRepository.GetByEmail(email);
 
+                if (userAccount == null || !_passwordHelper.VerifyPassword(accountDTO.Password, userAccount.Password))
+                {
+                    return NotFound(new { message = "Sai tên đăng nhập hoặc mật khẩu" });
+                }
+                if (!userAccount.IsVerified)
+                {
+                    return BadRequest(new { message = "Email của bạn chưa được xác thực, hãy xác thực email trước khi dăng nhập" });
+                }
 
-            if (userAccount == null || !_passwordHelper.VerifyPassword(accountDTO.Password, userAccount.Password))
-            {
-                return NotFound(new { message = "Sai tên đăng nhập hoặc mật khẩu" });
-            }
-            if (!userAccount.IsVerified)
-            {
-                return BadRequest(new { message = "Email của bạn chưa được xác thực, hãy xác thực email trước khi dăng nhập" });
-            }
-            //Console.WriteLine(userAccount.IsVerified);
+                if (userAccount.Status != "Enable")
+                {
+                    return BadRequest(new { message = "Tài khoản của bạn đã bị khóa, hãy liên hệ hỗ trợ nếu có sai sót" });
 
-            if (userAccount.Status != "Enable")
-            {
-                return BadRequest(new { message = "Tài khoản của bạn đã bị khóa, hãy liên hệ hỗ trợ nếu có sai sót" });
+                }
+                var token = _jwtHelper.GenerateJwtToken(userAccount.Email, userAccount.Role);
+                _logger.LogInformation($"user {userAccount.Id} login successfully");
+                return Ok(new { token });
 
             }
-            var token = _jwtHelper.GenerateJwtToken(userAccount.Email, userAccount.Role);
-            return Ok(new { token });
+            catch(Exception e){
+                _logger.LogError(e,"Get error at login");
+                return NoContent();
+            }
         }
 
         [HttpPost("register")]
