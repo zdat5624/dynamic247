@@ -106,5 +106,10 @@ namespace NewsPage.repositories
             // Create and return the paginated response
              return new PaginatedResponseDTO<FavoriteTopics>(items, pageNumber, pageSize, totalCount);
         }
+
+        public async Task<IEnumerable<object>> GetUsersByTopicIdAsync(Guid topicId)
+        {
+            return await _context.FavoriteTopics.Where(f => f.TopicId == topicId).ToListAsync();
+        }
     }
 }

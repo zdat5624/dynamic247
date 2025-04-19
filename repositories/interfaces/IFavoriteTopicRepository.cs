@@ -15,5 +15,6 @@ namespace NewsPage.repositories.interfaces
             int pageSize,
             Guid? userId,
             Guid? topicId);
+        Task<IEnumerable<object>> GetUsersByTopicIdAsync(Guid topicId);
     }
 }

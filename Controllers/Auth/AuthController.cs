@@ -19,9 +19,11 @@ namespace NewsPage.Controllers.Auth
         private readonly PasswordHelper _passwordHelper;
         private readonly MailHelper _mailHelper;
         private readonly OtpHelper _otpHelper;
-        private readonly ILogger _logger;
+        // private readonly ILogger _logger;
         public AuthController(IUserAccountRepository userAccountsRepository, IUserDetailRepository userDetailRepository
-            , JwtHelper jwtHelper, PasswordHelper passwordHelper, MailHelper mailHelper, OtpHelper otpHelper, ILogger<Program> logger)
+            , JwtHelper jwtHelper, PasswordHelper passwordHelper, MailHelper mailHelper, OtpHelper otpHelper
+            // , ILogger<Program> logger
+            )
         {
             _userAccountRepository = userAccountsRepository;
             _jwtHelper = jwtHelper;
@@ -29,7 +31,7 @@ namespace NewsPage.Controllers.Auth
             _userDetailRepository = userDetailRepository;
             _mailHelper = mailHelper;
             _otpHelper = otpHelper;
-            _logger = logger;
+            // _logger = logger;
         }
 
         [HttpPost("login")]
@@ -58,12 +60,12 @@ namespace NewsPage.Controllers.Auth
 
                 }
                 var token = _jwtHelper.GenerateJwtToken(userAccount.Email, userAccount.Role);
-                _logger.LogInformation($"user {userAccount.Id} login successfully");
+                // _logger.LogInformation($"user {userAccount.Id} login successfully");
                 return Ok(new { token });
 
             }
             catch(Exception e){
-                _logger.LogError(e,"Get error at login");
+                // _logger.LogError(e,"Get error at login");
                 return NoContent();
             }
         }
@@ -153,7 +155,7 @@ namespace NewsPage.Controllers.Auth
                 var otp = _otpHelper.GenerateOtp(email).Otp;
 
                 //send email contains OTP code
-                _mailHelper.ConfigEmail(subject, email, otp);
+                await _mailHelper.SendOtpEmailAsync(subject, email, otp);
                 return Ok(new { message = "Email sent successfully!" });
             }
             catch (Exception e)
@@ -203,7 +205,7 @@ namespace NewsPage.Controllers.Auth
                 string otp = _otpHelper.GenerateOtp(key).Otp;
 
                 //send email
-                _mailHelper.ConfigEmail(subject, email, otp);
+                await _mailHelper.SendOtpEmailAsync(subject, email, otp);
                 return Ok(new { message = "Gửi mail otp xác thực thành công" });
             }
             catch (Exception e)

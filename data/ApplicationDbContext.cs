@@ -121,7 +121,16 @@ namespace NewsPage.data
                 .WithMany()
                 .HasForeignKey(t => t.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<PageVisitor>()
+                .HasOne<UserAccounts>()
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             base.OnModelCreating(modelBuilder);
+
+
+
         }
 
         public DbSet<UserAccounts> UserAccounts { get; set; }
@@ -132,6 +141,8 @@ namespace NewsPage.data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<ArticleVisit> ArticleVisits { get; set; }
         public DbSet<FavoriteTopics> FavoriteTopics { get; set; }
+        public DbSet<PageVisitor> PageVisitor { get; set; }
+
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NewsPage.Enums;
+using NewsPage.helpers;
 using NewsPage.Models.entities;
 using NewsPage.Models.RequestDTO;
 using NewsPage.Models.ResponseDTO;
@@ -17,12 +18,24 @@ namespace NewsPage.Controllers
         private readonly IUserDetailRepository _userDetailRepository;
         private readonly IUserAccountRepository _userAccountRepository;
 
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IFavoriteTopicRepository _favoriteTopicRepository;
+        private readonly ITopicRepository _topicRepository;
 
-        public ArticleController(IArticleRepository articleRepository, IUserDetailRepository userDetailRepository, IUserAccountRepository userAccountRepository)
+
+        private readonly MailHelper _mailHelper;
+
+
+        public ArticleController(IArticleRepository articleRepository, IUserDetailRepository userDetailRepository, IUserAccountRepository userAccountRepository,
+        MailHelper mailHelper, ICategoryRepository categoryRepository, IFavoriteTopicRepository favoriteTopicRepository, ITopicRepository topicRepository)
         {
             _articleRepository = articleRepository;
             _userDetailRepository = userDetailRepository;
             _userAccountRepository = userAccountRepository;
+            _mailHelper = mailHelper;
+            _categoryRepository = categoryRepository;
+            _favoriteTopicRepository = favoriteTopicRepository;
+            _topicRepository = topicRepository;
         }
 
         [HttpPost("admin")]
@@ -221,8 +234,59 @@ namespace NewsPage.Controllers
             }
 
             article.Status = statusUpdateDTO.Status;
-            if (statusUpdateDTO.Status == ArticleStatus.PUBLISHED && article.PublishedAt == null)
+            if (statusUpdateDTO.Status == ArticleStatus.PUBLISHED && article.PublishedAt == null){
+
+                //send notify to interested reader
+                try
+                {
+                    // Get the category to determine the topic
+                    var category = await _categoryRepository.GetByIdAsync(article.CategoryId);
+                    if (category == null || category.TopicId == null) throw new Exception("No category was found");
+
+                    // Get users who have marked this topic as favorite
+                    var topicId = category.TopicId;
+                    var interestedUsers = await _favoriteTopicRepository.GetUsersByTopicIdAsync(topicId);
+                    
+                    if (interestedUsers == null || !interestedUsers.Any()) throw new Exception("No interested user was found");
+
+                    // Get all user accounts for the interested users
+                    var userEmails = new List<string>();
+                    foreach (Guid userId in interestedUsers)
+                    {
+                        var user = await _userAccountRepository.GetById(userId);
+                        if (user != null && !string.IsNullOrEmpty(user.Email))
+                        {
+                            userEmails.Add(user.Email);
+                        }
+                    }
+
+                    if (!userEmails.Any()) throw new Exception("No interested user email was found");
+
+                    // Get topic name
+                    var topic = await _topicRepository.GetTopicByIdAsync(topicId);
+                    var topicName = topic?.Name ?? "chủ đề này";
+
+                    // Send email to all interested users
+                    string subject = $"Bài viết mới về {topicName}";
+                    string body = $@"
+                        <html>
+                        <body>
+                            <h2>Một bài viết mới vừa được tạo về {topicName} mà bạn quan tâm!</h2>
+                            <p><strong>Tiêu đề:</strong> {article.Title}</p>
+                            <p>Hãy truy cập vào trang web của chúng tôi để đọc bài viết này khi nó được xuất bản.</p>
+                            <p>Cảm ơn bạn đã theo dõi!</p>
+                        </body>
+                        </html>";
+
+                    await _mailHelper.SendEmailToMultipleRecipientsAsync(userEmails, subject, body);
+                }
+                catch (Exception)
+                {
+                    // Log the exception but don't stop the article creation process
+                    // Consider adding proper logging here
+            }
                 article.PublishedAt = DateTime.UtcNow;
+            }
 
             var updatedArticle = await _articleRepository.UpdateAsync(article);
             if (updatedArticle == null)
