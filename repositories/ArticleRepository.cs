@@ -86,6 +86,14 @@ namespace NewsPage.Repositories
                 _context.ArticleVisits.RemoveRange(articleVisits);
             }
 
+            var articleStorages = await _context.ArticleStorages
+                           .Where(c => c.ArticleId == article.Id)
+                           .ToListAsync();
+            if (articleStorages.Count > 0)
+            {
+                _context.ArticleStorages.RemoveRange(articleStorages);
+            }
+
             _context.Articles.Remove(article);
 
             await _context.SaveChangesAsync();
