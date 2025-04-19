@@ -11,7 +11,6 @@ using NewsPage.Repositories;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
-using StackExchange.Redis;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -64,8 +63,8 @@ namespace NewsPage
             options.UseSqlServer(connectionString));
 
             //// connect to Redis // xử lý mã otp 
-            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-               .Connect(builder.Configuration["Redis:ConnectionString"]));
+            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+            //   .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
@@ -101,6 +100,7 @@ namespace NewsPage
             builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             builder.Services.AddScoped<IArticleVisitRepository, ArticleVisitRepository>();
+            builder.Services.AddScoped<IArticleStorageRepository, ArticleStorageRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password
@@ -131,9 +131,9 @@ namespace NewsPage
                           .AllowAnyHeader();
                 });
             });
-            
+
             // config logging 
-            ConfigureLogging ();
+            ConfigureLogging();
             builder.Host.UseSerilog();
 
 
@@ -170,7 +170,8 @@ namespace NewsPage
 
             app.Run();
         }
-        static void ConfigureLogging (){
+        static void ConfigureLogging()
+        {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -188,12 +189,12 @@ namespace NewsPage
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
         }
-        static  ElasticsearchSinkOptions ConfigurationElasticSink(IConfigurationRoot configuration, string? environment)
+        static ElasticsearchSinkOptions ConfigurationElasticSink(IConfigurationRoot configuration, string? environment)
         {
             environment ??= "Development";
             var uriString = configuration["ElasticConfiguration:Uri"] ?? "http://localhost:9200";
             var indexName = Assembly.GetExecutingAssembly().GetName().Name?.ToLower().Replace(".", "-") ?? "app";
-            
+
             return new ElasticsearchSinkOptions(new Uri(uriString))
             {
                 AutoRegisterTemplate = true,

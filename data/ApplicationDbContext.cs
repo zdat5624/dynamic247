@@ -102,6 +102,21 @@ namespace NewsPage.data
                 .HasForeignKey(c => c.UserAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            //  Article ArticleStorage (1-N)
+            modelBuilder.Entity<ArticleStorage>()
+                .HasOne(co => co.Article)
+                .WithMany()
+                .HasForeignKey(c => c.ArticleId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // UserAccount ArticleStorage (1-N)
+            modelBuilder.Entity<ArticleStorage>()
+                .HasOne(co => co.UserAccounts)
+                .WithMany()
+                .HasForeignKey(c => c.UserAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             //  enum ArticleStatus
             modelBuilder.Entity<Article>()
                 .Property(a => a.Status)
@@ -121,7 +136,7 @@ namespace NewsPage.data
                 .WithMany()
                 .HasForeignKey(t => t.TopicId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<PageVisitor>()
                 .HasOne<UserAccounts>()
                 .WithMany()
@@ -142,6 +157,8 @@ namespace NewsPage.data
         public DbSet<ArticleVisit> ArticleVisits { get; set; }
         public DbSet<FavoriteTopics> FavoriteTopics { get; set; }
         public DbSet<PageVisitor> PageVisitor { get; set; }
+        public DbSet<ArticleStorage> ArticleStorages { get; set; }
+
 
 
     }
