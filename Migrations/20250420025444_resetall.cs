@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NewsPage.Migrations
 {
     /// <inheritdoc />
-    public partial class initDB : Migration
+    public partial class resetall : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -55,6 +55,51 @@ namespace NewsPage.Migrations
                         name: "FK_Categories_Topics_TopicId",
                         column: x => x.TopicId,
                         principalTable: "Topics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FavoriteTopics",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TopicId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FavoriteTopics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FavoriteTopics_Topics_TopicId",
+                        column: x => x.TopicId,
+                        principalTable: "Topics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FavoriteTopics_UserAccounts_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReadingFrequencies",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReadingCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReadingFrequencies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReadingFrequencies_UserAccounts_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -115,12 +160,38 @@ namespace NewsPage.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ArticleStorages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ArticleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArticleStorages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArticleStorages_Articles_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Articles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ArticleStorages_UserAccounts_UserAccountId",
+                        column: x => x.UserAccountId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ArticleVisits",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     VisitTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ArticleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -184,6 +255,16 @@ namespace NewsPage.Migrations
                 column: "UserAccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArticleStorages_ArticleId",
+                table: "ArticleStorages",
+                column: "ArticleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArticleStorages_UserAccountId",
+                table: "ArticleStorages",
+                column: "UserAccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ArticleVisits_ArticleId",
                 table: "ArticleVisits",
                 column: "ArticleId");
@@ -209,6 +290,21 @@ namespace NewsPage.Migrations
                 column: "UserAccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FavoriteTopics_TopicId",
+                table: "FavoriteTopics",
+                column: "TopicId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FavoriteTopics_UserId",
+                table: "FavoriteTopics",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReadingFrequencies_UserId",
+                table: "ReadingFrequencies",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserAccounts_Email",
                 table: "UserAccounts",
                 column: "Email",
@@ -225,10 +321,19 @@ namespace NewsPage.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ArticleStorages");
+
+            migrationBuilder.DropTable(
                 name: "ArticleVisits");
 
             migrationBuilder.DropTable(
                 name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "FavoriteTopics");
+
+            migrationBuilder.DropTable(
+                name: "ReadingFrequencies");
 
             migrationBuilder.DropTable(
                 name: "UserDetails");

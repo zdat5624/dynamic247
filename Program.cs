@@ -14,6 +14,8 @@ using Serilog.Sinks.Elasticsearch;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using StackExchange.Redis;
+using NewsPage.Middleware;
 
 namespace NewsPage
 {
@@ -63,8 +65,8 @@ namespace NewsPage
             options.UseSqlServer(connectionString));
 
             //// connect to Redis // xử lý mã otp 
-            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-            //   .Connect(builder.Configuration["Redis:ConnectionString"]));
+            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+              .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
@@ -101,6 +103,8 @@ namespace NewsPage
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             builder.Services.AddScoped<IArticleVisitRepository, ArticleVisitRepository>();
             builder.Services.AddScoped<IArticleStorageRepository, ArticleStorageRepository>();
+            builder.Services.AddScoped<IPageVisitorRepository, PageVisitorRepository>();
+            builder.Services.AddScoped<IReadingFrequencyRepository, ReadingFrequencyRepository>();
             //JWT token
             builder.Services.AddScoped<JwtHelper>();
             //crypt password
@@ -163,10 +167,9 @@ namespace NewsPage
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-
+            app.UseCors("AllowAll");  // Move this here, before UsePageVisitorTracking
+            app.UsePageVisitorTracking();
             app.MapControllers();
-            app.UseCors("AllowAll");
 
             app.Run();
         }

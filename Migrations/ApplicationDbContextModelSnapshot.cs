@@ -193,11 +193,12 @@ namespace NewsPage.Migrations
 
             modelBuilder.Entity("NewsPage.Models.entities.PageVisitor", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("AccessCount")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
@@ -209,7 +210,29 @@ namespace NewsPage.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PageVisitor");
+                    b.ToTable("PageVisitors");
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ReadingFrequency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReadingCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReadingFrequencies");
                 });
 
             modelBuilder.Entity("NewsPage.Models.entities.Topic", b =>
@@ -407,6 +430,14 @@ namespace NewsPage.Migrations
                 });
 
             modelBuilder.Entity("NewsPage.Models.entities.PageVisitor", b =>
+                {
+                    b.HasOne("NewsPage.Models.entities.UserAccounts", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ReadingFrequency", b =>
                 {
                     b.HasOne("NewsPage.Models.entities.UserAccounts", null)
                         .WithMany()

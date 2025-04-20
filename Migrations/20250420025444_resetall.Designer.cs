@@ -12,8 +12,8 @@ using NewsPage.data;
 namespace NewsPage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250419113651_addPageVisitorTable")]
-    partial class addPageVisitorTable
+    [Migration("20250420025444_resetall")]
+    partial class resetall
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,6 +72,30 @@ namespace NewsPage.Migrations
                     b.HasIndex("UserAccountId");
 
                     b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleStorage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UserAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("UserAccountId");
+
+                    b.ToTable("ArticleStorages");
                 });
 
             modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
@@ -170,16 +194,17 @@ namespace NewsPage.Migrations
                     b.ToTable("FavoriteTopics");
                 });
 
-            modelBuilder.Entity("NewsPage.Models.entities.PageVisitor", b =>
+            modelBuilder.Entity("NewsPage.Models.entities.ReadingFrequency", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ReadingCount")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -188,7 +213,7 @@ namespace NewsPage.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PageVisitor");
+                    b.ToTable("ReadingFrequencies");
                 });
 
             modelBuilder.Entity("NewsPage.Models.entities.Topic", b =>
@@ -304,6 +329,24 @@ namespace NewsPage.Migrations
                     b.Navigation("UserAccounts");
                 });
 
+            modelBuilder.Entity("NewsPage.Models.entities.ArticleStorage", b =>
+                {
+                    b.HasOne("NewsPage.Models.entities.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NewsPage.Models.entities.UserAccounts", "UserAccounts")
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Article");
+
+                    b.Navigation("UserAccounts");
+                });
+
             modelBuilder.Entity("NewsPage.Models.entities.ArticleVisit", b =>
                 {
                     b.HasOne("NewsPage.Models.entities.Article", "Article")
@@ -367,7 +410,7 @@ namespace NewsPage.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NewsPage.Models.entities.PageVisitor", b =>
+            modelBuilder.Entity("NewsPage.Models.entities.ReadingFrequency", b =>
                 {
                     b.HasOne("NewsPage.Models.entities.UserAccounts", null)
                         .WithMany()

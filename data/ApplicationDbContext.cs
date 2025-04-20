@@ -144,6 +144,13 @@ namespace NewsPage.data
                 .OnDelete(DeleteBehavior.Cascade);
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<ReadingFrequency>()
+                .HasOne<UserAccounts>()
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            base.OnModelCreating(modelBuilder);
+
 
 
         }
@@ -156,8 +163,10 @@ namespace NewsPage.data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<ArticleVisit> ArticleVisits { get; set; }
         public DbSet<FavoriteTopics> FavoriteTopics { get; set; }
-        public DbSet<PageVisitor> PageVisitor { get; set; }
+        public DbSet<PageVisitor> PageVisitors { get; set; }
         public DbSet<ArticleStorage> ArticleStorages { get; set; }
+        public DbSet<ReadingFrequency> ReadingFrequencies { get; set; }
+
 
 
 

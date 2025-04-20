@@ -17,7 +17,7 @@ namespace NewsPage.Controllers
         private readonly IArticleRepository _articleRepository;
         private readonly IUserDetailRepository _userDetailRepository;
         private readonly IUserAccountRepository _userAccountRepository;
-
+        private readonly IReadingFrequencyRepository _readingFrequencyRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IFavoriteTopicRepository _favoriteTopicRepository;
         private readonly ITopicRepository _topicRepository;
@@ -27,7 +27,8 @@ namespace NewsPage.Controllers
 
 
         public ArticleController(IArticleRepository articleRepository, IUserDetailRepository userDetailRepository, IUserAccountRepository userAccountRepository,
-        MailHelper mailHelper, ICategoryRepository categoryRepository, IFavoriteTopicRepository favoriteTopicRepository, ITopicRepository topicRepository)
+        MailHelper mailHelper, ICategoryRepository categoryRepository, IFavoriteTopicRepository favoriteTopicRepository, ITopicRepository topicRepository,
+        IReadingFrequencyRepository readingFrequencyRepository)
         {
             _articleRepository = articleRepository;
             _userDetailRepository = userDetailRepository;
@@ -36,6 +37,7 @@ namespace NewsPage.Controllers
             _categoryRepository = categoryRepository;
             _favoriteTopicRepository = favoriteTopicRepository;
             _topicRepository = topicRepository;
+            _readingFrequencyRepository = readingFrequencyRepository;
         }
 
         [HttpPost("admin")]
@@ -199,7 +201,16 @@ namespace NewsPage.Controllers
                 return NotFound(new ApiResponse<ArticleDTO>(404, "Bài viết không tồn tại."));
 
             var userDetails = await _userDetailRepository.GetDetailByAccountID(article.UserAccountId);
+
+
+            //if user has signed in 
+            var userEmailFromToken = User.FindFirst(ClaimTypes.Name)?.Value;
+            if(userEmailFromToken != null){
+                var user = await _userAccountRepository.GetByEmail(userEmailFromToken);
+               await _readingFrequencyRepository.IncrementReadingCountAsync(user.Id);
+            }
             var articleDTO = MapToArticleDTO(article, userDetails);
+
 
             return Ok(new ApiResponse<ArticleDTO>(200, "Lấy thông tin bài viết thành công.", articleDTO));
         }
