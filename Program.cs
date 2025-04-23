@@ -61,8 +61,8 @@ namespace NewsPage
             options.UseSqlServer(connectionString));
 
             //// connect to Redis // xử lý mã otp 
-            //builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
-            //  .Connect(builder.Configuration["Redis:ConnectionString"]));
+            builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+              .Connect(builder.Configuration["Redis:ConnectionString"]));
 
 
             // 🔹 Lấy thông tin từ appsettings.json
