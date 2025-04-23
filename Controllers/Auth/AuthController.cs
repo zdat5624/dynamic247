@@ -19,10 +19,10 @@ namespace NewsPage.Controllers.Auth
         private readonly PasswordHelper _passwordHelper;
         private readonly MailHelper _mailHelper;
         private readonly OtpHelper _otpHelper;
-        // private readonly ILogger _logger;
+        private readonly ILogger<AuthController> _logger;
         public AuthController(IUserAccountRepository userAccountsRepository, IUserDetailRepository userDetailRepository
             , JwtHelper jwtHelper, PasswordHelper passwordHelper, MailHelper mailHelper, OtpHelper otpHelper
-            // , ILogger<Program> logger
+            , ILogger<AuthController> logger
             )
         {
             _userAccountRepository = userAccountsRepository;
@@ -31,7 +31,7 @@ namespace NewsPage.Controllers.Auth
             _userDetailRepository = userDetailRepository;
             _mailHelper = mailHelper;
             _otpHelper = otpHelper;
-            // _logger = logger;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -60,12 +60,12 @@ namespace NewsPage.Controllers.Auth
 
                 }
                 var token = _jwtHelper.GenerateJwtToken(userAccount.Email, userAccount.Role);
-                // _logger.LogInformation($"user {userAccount.Id} login successfully");
+                _logger.LogInformation($"user {userAccount.Id} login successfully");
                 return Ok(new { token });
 
             }
             catch(Exception e){
-                // _logger.LogError(e,"Get error at login");
+                _logger.LogError(e,"Get error at login");
                 return NoContent();
             }
         }

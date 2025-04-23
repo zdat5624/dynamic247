@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  web:
+    image: dat99999/newspage:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5288:5288"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5288
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=Dynamic247;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - Redis__ConnectionString=redis:6379,abortConnect=false
+    depends_on:
+      - db
+      - redis
+    restart: on-failure:5
+    networks:
+      - app-network
+       
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1434:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1433 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+
+volumes:
+  sql-data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge
